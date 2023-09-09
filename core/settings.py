@@ -11,6 +11,7 @@ class Bots:
     bot_token: str
     admin_id: str
     db_name: str
+    db_table_users: str
 
 
 @dataclass
@@ -27,6 +28,7 @@ def get_settings(path: str):
             bot_token=env.str("TOKEN"),
             admin_id=env.int("ADMIN_ID"),
             db_name=env.str("DB_NAME"),
+            db_table_users=env.str("DB_TABLE_USERS"),
         )
     )
 
@@ -37,3 +39,4 @@ settings = get_settings('input')
 # TOKEN=your bot token
 # ADMIN_ID=your telegram ID
 # DB_NAME=your database name
+# DB_TABLE_USERS=your table for store user IDs

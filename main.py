@@ -33,11 +33,11 @@ async def start():
     bot = Bot(settings.bots.bot_token, parse_mode='HTML')
     pool_connect = await create_pool()
     query = f'''
-    CREATE TABLE IF NOT EXISTS datausers
+    CREATE TABLE IF NOT EXISTS {settings.bots.db_table_users}
     (
     user_id bigint NOT NULL,
     user_name text COLLATE pg_catalog."default",
-    CONSTRAINT datausers_pkey PRIMARY KEY (user_id)
+    CONSTRAINT {settings.bots.db_table_users}_pkey PRIMARY KEY (user_id)
     );'''
     async with pool_connect.acquire() as connect:
         await connect.execute(query)
