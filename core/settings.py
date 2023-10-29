@@ -5,6 +5,16 @@ BASE_HELP = '''/start - начать работу
 /help получить эту помощь
 '''
 
+FORBIDDEN_MSG = "Вам запрещено взаимодействие с этим ботом!"
+
+WEBHOOK = False
+WEBHOOK_HOST = ''  # Путь к серверу где будет обрабатываться webhook
+
+# правила безопасности работы с ботом ('*' для доступа всем)
+ALLOWED_IDs = '*'
+# {5027774009,}
+# Список telegram ID пользователей, кому будет разрешено взаимодействие с ботом
+
 
 @dataclass
 class Bots:
@@ -12,6 +22,7 @@ class Bots:
     admin_id: int
     channel: int
     bookmarks_chat: int
+
 
 @dataclass
 class Db:
@@ -51,6 +62,8 @@ def get_settings(path: str):
 
 
 settings = get_settings('input')
+WEBHOOK_PATH = f"/{settings.bots.bot_token}"
+WEBHOOK_URL = f"https://{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
 # file 'input' must be in root folder and have text format such as:
 # TOKEN=your bot token
