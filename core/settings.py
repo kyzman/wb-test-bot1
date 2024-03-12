@@ -1,8 +1,9 @@
 from environs import Env
 from dataclasses import dataclass
 
-BASE_HELP = '''/start - начать работу
-/help получить эту помощь
+BASE_HELP = '''/cardinfo - Получить информацию по товару
+/stop - Остановить уведомления
+/getdb - получить информацию из БД
 '''
 
 FORBIDDEN_MSG = "Вам запрещено взаимодействие с этим ботом!"

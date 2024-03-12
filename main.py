@@ -3,6 +3,8 @@ import logging
 import asyncpg
 import contextlib
 
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 from aiogram import Bot, Dispatcher
@@ -11,10 +13,12 @@ from aiogram.fsm.storage.memory import MemoryStorage
 # from aiogram.fsm.storage.redis import RedisStorage
 
 from core.settings import settings, WEBHOOK_PATH, WEBHOOK
+from core.utils import services
 from core.utils.commands import set_commands
 from core.middlewares.dbmiddleware import Dbsession
 from core.middlewares.security import CheckAllowedMiddleware
-from core.handlers import basic
+from core.handlers import basic, cards
+from core.utils.states import StepsForm
 
 
 async def start_bot(bot: Bot):
@@ -37,7 +41,7 @@ async def start():
                                "(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
                         )
 
-    bot = Bot(settings.bots.bot_token, parse_mode='HTML')
+    bot = Bot(settings.bots.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     pool_connect = await create_pool()
     query = f'''
     CREATE TABLE IF NOT EXISTS {settings.db.users_table}
@@ -58,8 +62,12 @@ async def start():
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
 
+    dp.message.register(services.cancel_command, Command('cancel'))  # отмена любого действия.
+    dp.message.register(basic.get_cards_article, Command(commands=['cardinfo']))
+    dp.message.register(cards.get_by_card, StepsForm.search_card)
+
     dp.message.register(basic.get_start, Command(commands=['start', 'run']))
-    dp.message.register(basic.get_help, Command(commands='help'))
+    dp.message.register(basic.get_help)
 
     if WEBHOOK:
         app = web.Application()
