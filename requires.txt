@@ -2,3 +2,4 @@ aiogram
 asyncpg
 environs
 sqlalchemy
+requests
