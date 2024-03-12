@@ -10,6 +10,8 @@ from aiohttp import web
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
+
+from core.database.models import async_main
 # from aiogram.fsm.storage.redis import RedisStorage
 
 from core.settings import settings, WEBHOOK_PATH, WEBHOOK
@@ -23,6 +25,7 @@ from core.utils.states import StepsForm
 
 async def start_bot(bot: Bot):
     await set_commands(bot)
+    await async_main()
 
 
 async def stop_bot(bot: Bot):
@@ -42,7 +45,7 @@ async def start():
                         )
 
     bot = Bot(settings.bots.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-    pool_connect = await create_pool()
+    # pool_connect = await create_pool()
     query = f'''
     CREATE TABLE IF NOT EXISTS {settings.db.users_table}
     (
@@ -50,15 +53,15 @@ async def start():
     user_name text COLLATE pg_catalog."default",
     CONSTRAINT {settings.db.users_table}_pkey PRIMARY KEY (user_id)
     );'''
-    async with pool_connect.acquire() as connect:
-        await connect.execute(query)
+    # async with pool_connect.acquire() as connect:
+    #     await connect.execute(query)
 
     # storage = RedisStorage.from_url('redis://localhost:6379/0')
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
 
     dp.update.middleware.register(CheckAllowedMiddleware())  # проверка доступа к боту, кому разрешено с ним работать.
-    dp.update.middleware.register(Dbsession(pool_connect))
+    # dp.update.middleware.register(Dbsession(pool_connect))
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
 
