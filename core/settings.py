@@ -65,6 +65,8 @@ def get_settings(path: str):
 settings = get_settings('input')
 WEBHOOK_PATH = f"/{settings.bots.bot_token}"
 WEBHOOK_URL = f"https://{WEBHOOK_HOST}{WEBHOOK_PATH}"
+DB_URL = f"postgresql+asyncpg://{settings.db.user}:{settings.db.password}@{settings.db.host}/{settings.db.database}"
+
 
 # file 'input' must be in root folder and have text format such as:
 # TOKEN=your bot token

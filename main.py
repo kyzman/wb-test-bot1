@@ -1,26 +1,28 @@
 import asyncio
 import logging
-import asyncpg
 import contextlib
 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
+from apscheduler_di import ContextSchedulerDecorator
 
 from core.database.models import async_main
+from core.handlers.callback import subscribe
 # from aiogram.fsm.storage.redis import RedisStorage
 
 from core.settings import settings, WEBHOOK_PATH, WEBHOOK
 from core.utils import services
 from core.utils.commands import set_commands
-from core.middlewares.dbmiddleware import Dbsession
 from core.middlewares.security import CheckAllowedMiddleware
-from core.handlers import basic, cards
+from core.handlers import basic, cards, apsched
 from core.utils.states import StepsForm
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 async def start_bot(bot: Bot):
@@ -32,12 +34,6 @@ async def stop_bot(bot: Bot):
     ...
 
 
-async def create_pool():
-    return await asyncpg.create_pool(user=settings.db.user, password=settings.db.password,
-                                     database=settings.db.database,
-                                     host=settings.db.host, port=5432, command_timeout=60)
-
-
 async def start():
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s - [%(levelname)s] - %(name)s - "
@@ -45,31 +41,28 @@ async def start():
                         )
 
     bot = Bot(settings.bots.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-    # pool_connect = await create_pool()
-    query = f'''
-    CREATE TABLE IF NOT EXISTS {settings.db.users_table}
-    (
-    user_id bigint NOT NULL,
-    user_name text COLLATE pg_catalog."default",
-    CONSTRAINT {settings.db.users_table}_pkey PRIMARY KEY (user_id)
-    );'''
-    # async with pool_connect.acquire() as connect:
-    #     await connect.execute(query)
 
     # storage = RedisStorage.from_url('redis://localhost:6379/0')
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
+    scheduler = ContextSchedulerDecorator(AsyncIOScheduler(timezone="Asia/Yekaterinburg"))
+    scheduler.ctx.add_instance(bot, declared_class=Bot)
+    # scheduler.add_job(apsched.send_message_interval, trigger='interval', seconds=300)  # SPAM message every 5 minutes
+    # scheduler.remove_all_jobs()
+    scheduler.start()
 
     dp.update.middleware.register(CheckAllowedMiddleware())  # проверка доступа к боту, кому разрешено с ним работать.
-    # dp.update.middleware.register(Dbsession(pool_connect))
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
 
-    dp.message.register(services.cancel_command, Command('cancel'))  # отмена любого действия.
+    dp.message.register(services.cancel_command, Command('cancel'))  # отмена любого действия, кроме уведомлений.
     dp.message.register(basic.get_cards_article, Command(commands=['cardinfo']))
+    dp.message.register(basic.stop_subscribe, Command(commands=['stop']))
+    dp.message.register(basic.get_db_info, Command(commands=['getdb']))
     dp.message.register(cards.get_by_card, StepsForm.search_card)
 
-    dp.message.register(basic.get_start, Command(commands=['start', 'run']))
+    dp.callback_query.register(subscribe, F.data.startswith('subscribe_'))
+
     dp.message.register(basic.get_help)
 
     if WEBHOOK:

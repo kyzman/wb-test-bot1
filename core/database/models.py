@@ -1,12 +1,10 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, func
-from sqlalchemy.orm import relationship, Mapped, mapped_column, DeclarativeBase
+from sqlalchemy import BigInteger, func, String
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
-from core.settings import settings
-
-DB_URL = f"postgresql+asyncpg://{settings.db.user}:{settings.db.password}@{settings.db.host}/{settings.db.database}"
+from core.settings import DB_URL
 
 engine = create_async_engine(DB_URL, echo=True)
 
@@ -15,17 +13,19 @@ async_session = async_sessionmaker(engine)
 
 class Base(AsyncAttrs, DeclarativeBase):
     pass
+    id: Mapped[int] = mapped_column(primary_key=True)
 
 
 class DBreq(Base):
     __tablename__ = 'requests'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    telegram_id: Mapped[int] = mapped_column(BigInteger)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     time: Mapped[datetime] = mapped_column(
         server_default=func.now(), default=datetime.utcnow
     )
-    article: Mapped[int] = mapped_column(BigInteger)
+    article: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+    task_id: Mapped[str] = mapped_column(String, nullable=True)
 
     def __repr__(self):
         return f"<User {self.telegram_id}>"

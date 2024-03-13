@@ -1,15 +1,10 @@
 from aiogram import Bot, types
 from aiogram.fsm.context import FSMContext
 
-from core.utils.dbconnect import Request
 from core.settings import BASE_HELP
 from core.keyboards.stdkbd import main_kbd, cancel_kbd
 from core.utils.states import StepsForm
-
-
-async def get_start(msg: types.Message, bot: Bot, request: Request):
-    await request.add_data(msg.from_user.id, msg.from_user.first_name)
-    await bot.send_message(msg.from_user.id, f"<b>Привет {msg.from_user.first_name}. Рад тебя видеть!</b>")
+from core.database.requests import get_lastdb
 
 
 async def get_help(msg: types.Message, bot: Bot):
@@ -19,3 +14,16 @@ async def get_help(msg: types.Message, bot: Bot):
 async def get_cards_article(msg: types.Message, bot: Bot, state: FSMContext):
     await bot.send_message(msg.from_user.id, 'Введите артикул товара wildberries:', reply_markup=cancel_kbd)
     await state.set_state(StepsForm.search_card)
+
+
+async def stop_subscribe(msg: types.Message, bot: Bot):  # TODO
+
+    await bot.send_message(msg.from_user.id, "[Ещё не реализовано!] Рассылка всех сообщений отменена!", reply_markup=main_kbd)
+
+
+async def get_db_info(msg: types.Message, bot: Bot):
+    result = await get_lastdb(msg.from_user.id)
+    output = ""
+    for item in result:
+        output += f"[{item.id}] : {item.article=} "
+    await bot.send_message(msg.from_user.id, f"Ваши последние 5 запросов: {output}", reply_markup=main_kbd)
