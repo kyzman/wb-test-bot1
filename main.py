@@ -13,13 +13,14 @@ from apscheduler_di import ContextSchedulerDecorator
 
 from core.database.models import async_main
 from core.handlers.callback import subscribe
+from core.middlewares.apschedulemiddleware import SchedulerMiddleware
 # from aiogram.fsm.storage.redis import RedisStorage
 
 from core.settings import settings, WEBHOOK_PATH, WEBHOOK
 from core.utils import services
 from core.utils.commands import set_commands
 from core.middlewares.security import CheckAllowedMiddleware
-from core.handlers import basic, cards, apsched
+from core.handlers import basic, cards
 from core.utils.states import StepsForm
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -47,11 +48,11 @@ async def start():
     dp = Dispatcher(storage=storage)
     scheduler = ContextSchedulerDecorator(AsyncIOScheduler(timezone="Asia/Yekaterinburg"))
     scheduler.ctx.add_instance(bot, declared_class=Bot)
-    # scheduler.add_job(apsched.send_message_interval, trigger='interval', seconds=300)  # SPAM message every 5 minutes
-    # scheduler.remove_all_jobs()
     scheduler.start()
 
     dp.update.middleware.register(CheckAllowedMiddleware())  # проверка доступа к боту, кому разрешено с ним работать.
+    dp.update.middleware.register(SchedulerMiddleware(scheduler))  # регистрация, чтобы можно было передавать объект в функции
+
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
 

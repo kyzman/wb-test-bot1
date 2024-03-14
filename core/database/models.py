@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, func, String
+from sqlalchemy import BigInteger, func, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
 from core.settings import DB_URL
 
-engine = create_async_engine(DB_URL, echo=True)
+engine = create_async_engine(DB_URL, echo=False)
 
 async_session = async_sessionmaker(engine)
 
@@ -25,10 +25,18 @@ class DBreq(Base):
     )
     article: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
-    task_id: Mapped[str] = mapped_column(String, nullable=True)
-
     def __repr__(self):
         return f"<User {self.telegram_id}>"
+
+
+class Subscribe(Base):
+    __tablename__ = 'subscribes'
+
+    telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    article: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    job_id: Mapped[str] = mapped_column(String, nullable=False)
+
+    __table_args__ = (UniqueConstraint(telegram_id, article, name='uix_id_art'),)
 
 
 async def async_main():
