@@ -31,7 +31,7 @@ class Db:
     database: str
     user: str
     password: str
-    users_table: str
+    port: int
 
 
 @dataclass
@@ -56,7 +56,7 @@ def get_settings(path: str):
             database=env.str("DB_DATABASE"),
             user=env.str("DB_USER"),
             password=env.str("DB_PASSWORD"),
-            users_table=env.str("DB_TABLE_USERS"),
+            port=env.int("DB_PORT"),
 
         )
     )
@@ -65,7 +65,8 @@ def get_settings(path: str):
 settings = get_settings('input')
 WEBHOOK_PATH = f"/{settings.bots.bot_token}"
 WEBHOOK_URL = f"https://{WEBHOOK_HOST}{WEBHOOK_PATH}"
-DB_URL = f"postgresql+asyncpg://{settings.db.user}:{settings.db.password}@{settings.db.host}/{settings.db.database}"
+DB_URL = (f"postgresql+asyncpg://"
+          f"{settings.db.user}:{settings.db.password}@{settings.db.host}:{settings.db.port}/{settings.db.database}")
 
 
 # file 'input' must be in root folder and have text format such as:
@@ -78,4 +79,4 @@ DB_URL = f"postgresql+asyncpg://{settings.db.user}:{settings.db.password}@{setti
 # DB_DATABASE=your database name
 # DB_USER=your DataBase access user
 # DB_PASSWORD=your DataBase access password
-# DB_TABLE_USERS=your table for store user IDs in DataBase
+# DB_PORT=your Database access port
