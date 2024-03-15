@@ -1,0 +1,30 @@
+
+services:
+  postgres:
+    image: postgres:bullseye
+    restart: on-failure
+    environment:
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgbotdata:/var/lib/postgresql/data
+
+  bot:
+    build: .
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - postgres
+
+volumes:
+  pgbotdata:
+
+networks:
+  postgres:
+    driver: bridge

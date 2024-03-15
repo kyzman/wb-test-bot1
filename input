@@ -1,0 +1,10 @@
+TOKEN=
+ADMIN_ID=0
+MY_CHANNEL=0
+MY_CHAT_BOOKMARKS=0
+
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_DATABASE=postgres
+DB_TABLE_USERS=bot_users
+DB_HOST=postgres
