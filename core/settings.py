@@ -1,3 +1,4 @@
+import os
 from environs import Env
 from dataclasses import dataclass
 
@@ -45,7 +46,7 @@ def get_settings(path: str):
 
     return Settings(
         bots=Bots(
-            bot_token=env.str("TOKEN"),
+            bot_token=os.getenv("BOT_TOKEN") or env.str("TOKEN"),
             admin_id=env.int("ADMIN_ID"),
             channel=env.int("MY_CHANNEL"),
             bookmarks_chat=env.int("MY_CHAT_BOOKMARKS")

@@ -28,4 +28,4 @@ async def get_db_info(msg: types.Message, bot: Bot):
     output = ""
     for item in result:
         output += f"[{item.id}] : {item.article=} \n"
-        await send_card_msg_info(bot, msg.chat.id, item.article)
+        await send_card_msg_info(bot, msg.chat.id, item.article, True)
